@@ -1,0 +1,29 @@
+%% Parameter estimation
+clc; clear all; 
+% Initializing with roots between (1,-1) with roots 0.2,0.6 and -0.5
+N = 10;
+a = 1;
+b = -0.3;
+c = -0.28;
+d = 0.06;
+Sigma = 0.5;
+gammaArray = 10.^[-10:0.1:10]; 
+w_true = [a,b,c,d];
+% generating iid samples 
+x = -1 + 2*rand(1,N);
+V = mvnrnd(0,Sigma,N);
+z = [x(1,:).^3;x(1,:).^2;x(1,:);ones(1,N)];
+y = (w_true*z) + V';% where is this being used
+
+% Computing product of z*z' 
+for i = 1:N
+    zzT(:,:,i) = z(:,i)*z(:,i)';
+end
+% ML estimate
+w_ML = ((1/N)*sum(zzT,3))^-1*((1/N)*sum(repmat(y,size(z,1),1).*z,2));
+
+% MAP estimate 
+for i = 1:length(gammaArray)
+    gamma = gammaArray(i);
+    w_MAP(:,i) = (sum(zzT,3)+(Sigma^2)/(gamma^2)*eye(size(z,1)))^-1*sum(repmat(y,size(z,1),1).*z,2);
+end
